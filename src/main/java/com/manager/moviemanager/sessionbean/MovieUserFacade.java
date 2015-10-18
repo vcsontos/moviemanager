@@ -11,7 +11,6 @@ import com.manager.moviemanager.exception.JeeApplicationException;
 import com.manager.moviemanager.security.PassWordHash;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +41,6 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
 
     private String username;
     private String password;
-    private String message;
 
     @Override
     protected EntityManager getEntityManager() {
@@ -53,14 +51,14 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
         super(MovieUser.class);
     }
 
-    public void addUser(String username, String password) 
+    public void addUser(String username, String password)
             throws JeeApplicationException, NoSuchAlgorithmException, InvalidKeySpecException {
-        
-            validateUsername(username);
-            validatePassword(password);
-            isAlreadyExistUsername(username);
-            String hashedPassword = createHashPasswordAndSalt(password);
-            getEntityManager().persist(setMovieUser(username, hashedPassword));
+
+        validateUsername(username);
+        validatePassword(password);
+        isAlreadyExistUsername(username);
+        String hashedPassword = createHashPasswordAndSalt(password);
+        getEntityManager().persist(setMovieUser(username, hashedPassword));
     }
 
     public void authenticate(String username, String password)
@@ -74,8 +72,8 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
 
     public String issueToken(String username) throws JoseException {
 
-        // Generate an RSA key pair, which will be used for signing and verification of the JWT, wrapped in a JWK
-        RsaJsonWebKey rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);
+        //Generate an RSA key pair, which will be used for signing and verification of the JWT, wrapped in a JWK
+        RsaJsonWebKey rsaJsonWebKey = RsaJwkGenerator.generateJwk(2048);                
 
         // Give the JWK a Key ID (kid), which is just the polite thing to do
         rsaJsonWebKey.setKeyId("k1");
@@ -88,14 +86,11 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
         claims.setGeneratedJwtId(); // a unique identifier for the token
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
         claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
-        claims.setSubject(username); // the subject/principal is whom the token is about                
+        claims.setSubject("subject"); // the subject/principal is whom the token is about
 
-        // A JWT is a JWS and/or a JWE with JSON claims as the payload.
+        //A JWT is a JWS and/or a JWE with JSON claims as the payload.
         // In this example it is a JWS so we create a JsonWebSignature object.
         JsonWebSignature jws = new JsonWebSignature();
-
-        // The payload of the JWS is JSON content of the JWT Claims
-        jws.setPayload(claims.toJson());
 
         // The JWT is signed using the private key
         jws.setKey(rsaJsonWebKey.getPrivateKey());
@@ -113,7 +108,7 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
         // base64url-encoded parts in the form Header.Payload.Signature
         // If you wanted to encrypt it, you can simply set this jwt as the payload
         // of a JsonWebEncryption object and set the cty (Content Type) header to "jwt".
-        String token = jws.getCompactSerialization();        
+        String token = jws.getCompactSerialization();
         return token;
     }
 
@@ -212,9 +207,5 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getMessage() {
-        return message;
     }
 }

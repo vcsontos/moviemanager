@@ -50,15 +50,14 @@ public class Movie implements Serializable {
     private String actors; 
     
     @Column(name = "rating")
-    private String rating;
+    private Integer rating;
     
     @Column(name = "createddate")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdDate;
     
-    @OneToOne
-    @JoinColumn(name = "coverimageid", referencedColumnName = "coverimageid")
-    private CoverImage coverimage;
+    @Column(name = "image")
+    private byte[] image;
 
     public Movie() {
         
@@ -114,11 +113,11 @@ public class Movie implements Serializable {
         this.actors = actors;
     }
 
-    public String getRating() {
+    public Integer getRating() {
         return rating;
     }
 
-    public void setRating(String rating) {
+    public void setRating(Integer rating) {
         this.rating = rating;
     }
 
@@ -130,12 +129,12 @@ public class Movie implements Serializable {
         this.createdDate = createdDate;
     }
 
-    public CoverImage getCoverimage() {
-        return coverimage;
+    public byte[] getImage() {
+        return image;
     }
 
-    public void setCoverimage(CoverImage coverimage) {
-        this.coverimage = coverimage;
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 
     @Override

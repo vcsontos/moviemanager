@@ -21,9 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.security.PermitAll;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.SecurityContext;
 import org.jose4j.lang.JoseException;
 
 /**
@@ -32,14 +29,10 @@ import org.jose4j.lang.JoseException;
  */
 @Stateless
 @Path("")
-@PermitAll
 public class MovieUserFacadeREST  {
 
     @EJB
     MovieUserFacade movieUserFacade;
-    
-    @Context
-    private SecurityContext securityContext;
 
     @POST
     @Path("addUser")

@@ -29,7 +29,7 @@ public class ApplicationConfig extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(com.manager.moviemanager.service.CoverImageFacadeREST.class);
+        resources.add(com.manager.moviemanager.security.AuthenticationFilter.class);
         resources.add(com.manager.moviemanager.service.MovieFacadeREST.class);
         resources.add(com.manager.moviemanager.service.MovieUserFacadeREST.class);
     }
