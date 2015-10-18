@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.manager.filmandseriesmanager.entity;
+package com.manager.moviemanager.entity;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -27,14 +27,14 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author valentin
  */
 @Entity
-@Table(name = "FilmUser", uniqueConstraints = {
+@Table(name = "MovieUser", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"username"})})
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "FilmUser.findAll", query = "SELECT f FROM FilmUser f"),
-    @NamedQuery(name = "FilmUser.findByUsername", query = "SELECT f FROM FilmUser f WHERE f.username = :username")
+    @NamedQuery(name = "MovieUser.findAll", query = "SELECT m FROM MovieUser m"),
+    @NamedQuery(name = "MovieUser.findByUsername", query = "SELECT m FROM MovieUser m WHERE m.username = :username")
 })
-public class FilmUser implements Serializable {
+public class MovieUser implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -55,14 +55,14 @@ public class FilmUser implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdDate;
 
-    public FilmUser() {
+    public MovieUser() {
     }
 
-    public FilmUser(Long id) {
+    public MovieUser(Long id) {
         this.id = id;
     }
 
-    public FilmUser(Long id, String username, String password) {
+    public MovieUser(Long id, String username, String password) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -110,10 +110,10 @@ public class FilmUser implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof FilmUser)) {
+        if (!(object instanceof MovieUser)) {
             return false;
         }
-        FilmUser other = (FilmUser) object;
+        MovieUser other = (MovieUser) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -122,7 +122,7 @@ public class FilmUser implements Serializable {
 
     @Override
     public String toString() {
-        return "com.manager.filmandseriesmanager.entity.FilmUser[ id=" + id + " ]";
+        return "com.manager.moviemanager.entity.MovieUser[ id=" + id + " ]";
     }
 
 }

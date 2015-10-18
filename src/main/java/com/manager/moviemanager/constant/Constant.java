@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.manager.filmandseriesmanager.constant;
+package com.manager.moviemanager.constant;
 
 /**
  *
@@ -17,4 +17,8 @@ public class Constant {
     public static final String PASSWORD_HAS_LESS_THAN_SIX_CHARACTERS = "Password has less than 6 characters";
     public static final String USERNAME_IS_ALREADY_EXIST = "Username is already exist";
     public static final String CREATE_HASH_PASSWORD_WAS_WRONG = "Create hash password was wrong";
+    public static final String SUCCESSFUL_REGISTRATION = "Successful registration";
+    public static final String SUCCESSFUL_LOGIN = "Successful login";
+    public static final String INVALID_USERNAME_OR_PASSWORD = "Invalid username or password";
+    public static final String INVALID_PASSWORD = "Invalid password";
 }

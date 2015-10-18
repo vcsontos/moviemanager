@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.manager.filmandseriesmanager.service;
+package com.manager.moviemanager.service;
 
 import java.util.Set;
 import javax.ws.rs.core.Application;
@@ -29,7 +29,9 @@ public class ApplicationConfig extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(com.manager.filmandseriesmanager.service.FilmUserFacadeREST.class);
+        resources.add(com.manager.moviemanager.service.CoverImageFacadeREST.class);
+        resources.add(com.manager.moviemanager.service.MovieFacadeREST.class);
+        resources.add(com.manager.moviemanager.service.MovieUserFacadeREST.class);
     }
     
 }

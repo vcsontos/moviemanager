@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utils;
+package com.manager.moviemanager.utils;
 
 /**
  *
@@ -11,17 +11,8 @@ package utils;
  */
 public class RegistrationResponse {
     
-    private RespStatus status;
     private String username;
     private String message;
-
-    public RespStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RespStatus status) {
-        this.status = status;
-    }
 
     public String getUsername() {
         return username;

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.manager.filmandseriesmanager.exception;
+package com.manager.moviemanager.exception;
 
 /**
  *

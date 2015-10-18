@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utils;
+package com.manager.moviemanager.utils;
 
 /**
  *
  * @author valentin
  */
-public enum RespStatus {
-    OK, NOK
+public enum MovieType {
+    MOVIE, SERIES
 }
