@@ -5,8 +5,8 @@
  */
 package com.manager.moviemanager.service;
 
-import com.manager.moviemanager.entity.Movie;
 import com.manager.moviemanager.exception.JeeApplicationException;
+import com.manager.moviemanager.security.Secured;
 import com.manager.moviemanager.sessionbean.MovieFacade;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,12 +29,12 @@ public class MovieFacadeREST {
     MovieFacade movieFacade;
 
     @POST
-    //@Secured
+    @Secured
     @Path("addMovie")
     @Produces({"application/json"})
     public Response addMovie(String movie) {
         try {
-            movieFacade.createMovie(movie); 
+            movieFacade.createMovie(movie);
             return Response.status(Response.Status.OK).build();
         } catch (JeeApplicationException ex) {
             Logger.getLogger(MovieFacadeREST.class.getName()).log(Level.SEVERE, null, ex);

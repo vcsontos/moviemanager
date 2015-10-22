@@ -8,6 +8,7 @@ package com.manager.moviemanager.sessionbean;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.manager.moviemanager.entity.Movie;
 import com.manager.moviemanager.exception.JeeApplicationException;
 import com.manager.moviemanager.utils.MovieType;
@@ -44,8 +45,7 @@ public class MovieFacade extends AbstractFacade<Movie> {
         
         Movie movie = getMovieFromJson(json);
         movie.setCreatedDate(new Date());
-        createImage();
-        //getEntityManager().persist(movie);
+        getEntityManager().persist(movie);
     }
     
     public Movie getMovieFromJson(String json) throws JeeApplicationException {
@@ -53,25 +53,30 @@ public class MovieFacade extends AbstractFacade<Movie> {
         if (StringUtils.isEmpty(json)) {
             throw new JeeApplicationException("Movie name and type required.");
         }
+                      
+        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();        
         
         Movie movie = new Movie();
         
-        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
-        
         JsonElement nameElement = jsonObject.get("name");
-        if (nameElement != null) {
-            movie.setName(nameElement.getAsString());
-        }
+        if (nameElement == null) {
+            throw new JeeApplicationException("Movie name and type required.");
+        }       
+        movie.setName(nameElement.getAsString());
+
         
         JsonElement typeElement = jsonObject.get("type");
-        if (typeElement != null) {
-            String type = typeElement.getAsString().trim().toUpperCase();
-            if (type.equals(MovieType.MOVIE.toString()) || type.equals(MovieType.SERIES.toString())) {
-                movie.setType(MovieType.valueOf(type));
-            } else {
-                throw new JeeApplicationException("Invalid movie type");
-            }
+        if (typeElement == null) {
+            throw new JeeApplicationException("Movie name and type required.");
         }
+        
+        String type = typeElement.getAsString().trim().toUpperCase();
+        if (type.equals(MovieType.MOVIE.toString()) || type.equals(MovieType.SERIES.toString())) {
+            movie.setType(MovieType.valueOf(type));
+        } else {
+            throw new JeeApplicationException("Invalid movie type");
+        }
+
         
         JsonElement genreElement = jsonObject.get("genre");
         if (genreElement != null) {
@@ -120,7 +125,7 @@ public class MovieFacade extends AbstractFacade<Movie> {
     }
     
     public void createImage() {
-        File file = new File("C://Users//valentin//Downloads//wallpapers//barca//barca2015.jpg");
+        File file = new File("C://Users//valentin//Downloads//wallpapers//barca//barcalogo.png");
  
         try {            
             // Reading a Image file from file system

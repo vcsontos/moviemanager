@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jose4j.lang.JoseException;
 
 /**
  *
@@ -57,9 +56,9 @@ public class MovieUserFacadeREST  {
             @FormParam("password") String password) {
         try {
             movieUserFacade.authenticate(username, password);
-            String token = movieUserFacade.issueToken(username);
-            return Response.ok(token).build();       
-        } catch (JeeApplicationException | NoSuchAlgorithmException | InvalidKeySpecException | JoseException ex) {
+            String token = movieUserFacade.issueToken(username);        
+            return Response.ok(token).build();
+        } catch (JeeApplicationException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
             Logger.getLogger(MovieUserFacadeREST.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
             return Response.status(Response.Status.UNAUTHORIZED).build();
         } 

@@ -28,11 +28,12 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @Entity
 @Table(name = "MovieUser", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"username"})})
+    @UniqueConstraint(columnNames = {"username", "token"})})
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "MovieUser.findAll", query = "SELECT m FROM MovieUser m"),
-    @NamedQuery(name = "MovieUser.findByUsername", query = "SELECT m FROM MovieUser m WHERE m.username = :username")
+    @NamedQuery(name = "MovieUser.findByUsername", query = "SELECT m FROM MovieUser m WHERE m.username = :username"),
+    @NamedQuery(name = "MovieUser.findByToken", query = "SELECT m FROM MovieUser m WHERE m.token = :token")
 })
 public class MovieUser implements Serializable {
 
@@ -50,6 +51,13 @@ public class MovieUser implements Serializable {
     @Size(min = 6, max = 255)
     @Column(name = "password")
     private String password;
+    
+    @Column(name = "token")
+    private String token;
+    
+    @Column(name = "tokenregisterdate")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date tokenregisterDate;
 
     @Column(name = "createddate")
     @Temporal(TemporalType.TIMESTAMP)
@@ -90,6 +98,22 @@ public class MovieUser implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public Date getTokenregisterDate() {
+        return tokenregisterDate;
+    }
+
+    public void setTokenregisterDate(Date tokenregisterDate) {
+        this.tokenregisterDate = tokenregisterDate;
     }
 
     public Date getCreatedDate() {

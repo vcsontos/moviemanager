@@ -5,9 +5,14 @@
  */
 package com.manager.moviemanager.security;
 
+import com.manager.moviemanager.entity.MovieUser;
+import com.manager.moviemanager.exception.JeeApplicationException;
 import com.manager.moviemanager.sessionbean.MovieUserFacade;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.Priority;
 import javax.ejb.EJB;
 import javax.ws.rs.NotAuthorizedException;
@@ -19,10 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-import org.jose4j.jwt.JwtClaims;
-import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.jwt.consumer.JwtConsumer;
-import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  *
@@ -54,9 +56,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             String token = getAuthorizationHeaderValue(requestContext);
             validateToken(token);
 
-        } catch (Exception e) {
+        } catch (Exception ex) {
             requestContext.abortWith(
-                    Response.status(Response.Status.UNAUTHORIZED).build());
+                    Response.status(Response.Status.UNAUTHORIZED).entity(ex.getMessage()).build());
         }
     }
 
@@ -75,24 +77,19 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     }
 
     private void validateToken(String token) throws Exception {
+               
+        List<MovieUser> users = movieUserFacade.getMovieUserByToken(token);
         
-        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
-                .setRequireExpirationTime() // the JWT must have an expiration time
-                .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
-                .setRequireSubject() // the JWT must have a subject claim
-                .setExpectedIssuer("moviemanager") // whom the JWT needs to have been issued by
-                .setExpectedAudience("adam") // to whom the JWT is intended for
-                //.setVerificationKey(movieUserFacade.getRsaJsonWebKey().getPublicKey()) // verify the signature with the public key
-                .build(); // create the JwtConsumer instance
-
-        try {
-            //  Validate the JWT and process it to the Claims
-            JwtClaims jwtClaims = jwtConsumer.processToClaims(token);
-            System.out.println("JWT validation succeeded! " + jwtClaims);
-        } catch (InvalidJwtException e) {
-            // InvalidJwtException will be thrown, if the JWT failed processing or validation in anyway.
-            // Hopefully with meaningful explanations(s) about what went wrong.
-            System.out.println("Invalid JWT! " + e);
+        if (CollectionUtils.isEmpty(users)) {
+            throw new JeeApplicationException("Token is not exist.");
+        }
+        
+        if (users.size() > 1) {
+            throw new JeeApplicationException("Token is not unique.");
+        }
+        
+        if(movieUserFacade.isExpiredToken(users.get(0).getTokenregisterDate())) {
+            throw new JeeApplicationException("Token expired.");
         }
     }
 
