@@ -5,14 +5,14 @@
  */
 package com.manager.moviemanager.security;
 
+import com.manager.moviemanager.constant.Constant;
 import com.manager.moviemanager.entity.MovieUser;
 import com.manager.moviemanager.exception.JeeApplicationException;
 import com.manager.moviemanager.sessionbean.MovieUserFacade;
+import com.manager.moviemanager.utils.Base64Coding;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Date;
 import javax.annotation.Priority;
 import javax.ejb.EJB;
 import javax.ws.rs.NotAuthorizedException;
@@ -24,7 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -44,22 +44,29 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
-        Method method = resourceInfo.getResourceMethod();
-        if (method != null) {
-            Secured secured = method.getAnnotation(Secured.class);
-            if (secured == null) {
+        try {
+            
+            if (!isAnnotatedBySecured()) {
                 return;
             }
-        }
-
-        try {
+            
             String token = getAuthorizationHeaderValue(requestContext);
-            validateToken(token);
+            validateToken(requestContext, token);
 
         } catch (Exception ex) {
             requestContext.abortWith(
                     Response.status(Response.Status.UNAUTHORIZED).entity(ex.getMessage()).build());
         }
+    }
+    
+    private boolean isAnnotatedBySecured() {
+        
+        Method method = resourceInfo.getResourceMethod();
+        if (method != null) {
+            Secured secured = method.getAnnotation(Secured.class);
+            return !(secured == null);
+        } 
+        return false;
     }
 
     private String getAuthorizationHeaderValue(ContainerRequestContext requestContext) {
@@ -76,19 +83,47 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         return authorizationHeader.substring("Bearer".length()).trim();
     }
 
-    private void validateToken(String token) throws Exception {
-               
-        List<MovieUser> users = movieUserFacade.getMovieUserByToken(token);
+    public void validateToken(ContainerRequestContext requestContext, String token)
+            throws JeeApplicationException {
         
-        if (CollectionUtils.isEmpty(users)) {
-            throw new JeeApplicationException("Token is not exist.");
+        String[] splittedToken = splitToken(token);
+        MovieUser user = validateAudience(splittedToken[1]);
+        compareToken(token, user.getToken());
+        isExpiredToken(user.getTokenRegisterDate());
+        requestContext.setProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION, user);
+    }
+    
+    public String[] splitToken(String token) throws JeeApplicationException {
+        
+        if (StringUtils.isEmpty(token)) {
+            throw new JeeApplicationException("Token is invalid");
         }
-        
-        if (users.size() > 1) {
-            throw new JeeApplicationException("Token is not unique.");
+
+        String[] parts = token.split("\\.");
+        if (parts.length != 3) {
+            throw new JeeApplicationException("Token is invalid");
         }
+        return parts;
+    }
+    
+    public MovieUser validateAudience(String audience) throws JeeApplicationException {
         
-        if(movieUserFacade.isExpiredToken(users.get(0).getTokenregisterDate())) {
+        String decodedAudience = Base64Coding.decodeString(audience);
+        MovieUser user = movieUserFacade.findUser(decodedAudience);              
+        return user;
+    }
+    
+    public void compareToken(String token, String userToken) throws JeeApplicationException {
+        
+        if (!token.equals(userToken)) {
+            throw new JeeApplicationException("Token is not valid.");
+        }
+    }
+    
+    public void isExpiredToken(Date registerDate) throws JeeApplicationException {
+        
+        long diffInMillies = new Date().getTime() - registerDate.getTime();
+        if (diffInMillies > (Constant.TOKEN_EXPIRATION_DATE_IN_MINUTES * 60 * 1000)) {
             throw new JeeApplicationException("Token expired.");
         }
     }

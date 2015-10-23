@@ -21,5 +21,7 @@ public class Constant {
     public static final String SUCCESSFUL_LOGIN = "Successful login";
     public static final String INVALID_USERNAME_OR_PASSWORD = "Invalid username or password";
     public static final String INVALID_PASSWORD = "Invalid password";
-    public static final Integer TOKEN_EXPIRATION_DATE_IN_MINUTES = 30;
+    public static final Integer TOKEN_EXPIRATION_DATE_IN_MINUTES = 400;
+    public static final String ISSUER = "MOVIEMANAGER";
+    public static final String MOVIE_USER_FOR_IDENTIFICATION = "MOVIEUSER";
 }

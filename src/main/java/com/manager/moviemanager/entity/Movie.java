@@ -18,6 +18,10 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import com.manager.moviemanager.utils.MovieType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -26,6 +30,12 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @Entity
 @XmlRootElement
+@NamedQueries({
+    @NamedQuery(name = "MovieUser.findMovieByMovieNameAndUserId", 
+            query = "SELECT m FROM Movie m WHERE m.name = :movieName AND m.movieUser.id = :userId"),
+    @NamedQuery(name = "MovieUser.findAllMovieByUser", 
+            query = "SELECT m FROM Movie m WHERE m.movieUser.id = :userId")
+})
 public class Movie implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
@@ -56,6 +66,10 @@ public class Movie implements Serializable {
     
     @Column(name = "image")
     private byte[] image;
+    
+    @ManyToOne
+    @JoinColumn(name = "movieuser", referencedColumnName = "id")
+    private MovieUser movieUser;
 
     public Movie() {
         
@@ -135,6 +149,14 @@ public class Movie implements Serializable {
         this.image = image;
     }
 
+    public MovieUser getMovieUser() {
+        return movieUser;
+    }
+
+    public void setMovieUser(MovieUser movieUser) {
+        this.movieUser = movieUser;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -143,8 +165,7 @@ public class Movie implements Serializable {
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
+    public boolean equals(Object object) {       
         if (!(object instanceof Movie)) {
             return false;
         }

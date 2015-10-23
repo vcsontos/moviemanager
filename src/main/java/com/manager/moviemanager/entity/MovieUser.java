@@ -33,7 +33,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @NamedQueries({
     @NamedQuery(name = "MovieUser.findAll", query = "SELECT m FROM MovieUser m"),
     @NamedQuery(name = "MovieUser.findByUsername", query = "SELECT m FROM MovieUser m WHERE m.username = :username"),
-    @NamedQuery(name = "MovieUser.findByToken", query = "SELECT m FROM MovieUser m WHERE m.token = :token")
 })
 public class MovieUser implements Serializable {
 
@@ -57,7 +56,7 @@ public class MovieUser implements Serializable {
     
     @Column(name = "tokenregisterdate")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date tokenregisterDate;
+    private Date tokenRegisterDate;
 
     @Column(name = "createddate")
     @Temporal(TemporalType.TIMESTAMP)
@@ -108,12 +107,12 @@ public class MovieUser implements Serializable {
         this.token = token;
     }
 
-    public Date getTokenregisterDate() {
-        return tokenregisterDate;
+    public Date getTokenRegisterDate() {
+        return tokenRegisterDate;
     }
 
-    public void setTokenregisterDate(Date tokenregisterDate) {
-        this.tokenregisterDate = tokenregisterDate;
+    public void setTokenRegisterDate(Date tokenRegisterDate) {
+        this.tokenRegisterDate = tokenRegisterDate;
     }
 
     public Date getCreatedDate() {
@@ -132,8 +131,7 @@ public class MovieUser implements Serializable {
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
+    public boolean equals(Object object) {        
         if (!(object instanceof MovieUser)) {
             return false;
         }

@@ -9,9 +9,9 @@ import com.manager.moviemanager.constant.Constant;
 import com.manager.moviemanager.entity.MovieUser;
 import com.manager.moviemanager.exception.JeeApplicationException;
 import com.manager.moviemanager.security.PassWordHash;
+import com.manager.moviemanager.utils.Base64Coding;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +57,7 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
 
         validateUsername(username);
         validatePassword(password);
-        isAlreadyExistUsername(username);
+        notFindUser(username);
         String hashedPassword = createHashPasswordAndSalt(password);
         getEntityManager().persist(setMovieUser(username, hashedPassword));
     }
@@ -65,44 +65,50 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
     public void authenticate(String username, String password)
             throws JeeApplicationException, NoSuchAlgorithmException, InvalidKeySpecException {
 
-        List<MovieUser> users = getMovieUserByUsername(username);
-        usernameIsNotExist(users);
-        boolean validPassword = PassWordHash.validatePassword(password, users.get(0).getPassword());
+        MovieUser user = findUser(username);
+        boolean validPassword = PassWordHash.validatePassword(password, user.getPassword());
         checkPassword(validPassword);
     }
 
     public String issueToken(String username) {
 
-        UUID token = UUID.randomUUID();
-        String strToken = token.toString();
-        updateMovieUserWithToken(username, strToken, new Date());
-        return strToken;
+        UUID uuid = UUID.randomUUID();
+        String encodedUUID = Base64Coding.encodeString(uuid.toString());
+        String encodedAudience = Base64Coding.encodeString(username);
+        String encodedIssuer = Base64Coding.encodeString(Constant.ISSUER);
+        String token = encodedIssuer + "." + encodedAudience + "." + encodedUUID;
+        updateMovieUserWithToken(username, token, new Date());
+        return token;
     }
-    
+
     private void updateMovieUserWithToken(String username, String token, Date tokenregisterDate) {
-        
+
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaUpdate<MovieUser> update = builder.
                 createCriteriaUpdate(MovieUser.class);
         Root<MovieUser> root = update.from(MovieUser.class);
         EntityType<MovieUser> movieuser_ = root.getModel();
-              
-        Predicate usernameCondition = builder.equal(root.get(movieuser_.getSingularAttribute("username", String.class)) , username);
+
+        Predicate usernameCondition = builder.equal(root.get(movieuser_.getSingularAttribute("username", String.class)), username);
 
         update.set(root.get(movieuser_.getSingularAttribute("token", String.class)), token);
-        update.set(root.get(movieuser_.getSingularAttribute("tokenregisterDate", Date.class)), tokenregisterDate);
+        update.set(root.get(movieuser_.getSingularAttribute("tokenRegisterDate", Date.class)), tokenregisterDate);
         update.where(usernameCondition);
         getEntityManager().createQuery(update).executeUpdate();
     }
 
-    public void usernameIsNotExist(List<MovieUser> users) throws JeeApplicationException {
+    public void checkUsernameExist(List<MovieUser> users) throws JeeApplicationException {
         if (CollectionUtils.isEmpty(users)) {
             Logger.getLogger(MovieUserFacade.class.getName()).log(Level.SEVERE, Constant.USERNAME_IS_EMPTY_OR_NULL);
             throw new JeeApplicationException(Constant.INVALID_USERNAME_OR_PASSWORD);
         }
+    }
+
+    public void checkUsernameIsUnique(List<MovieUser> users) throws JeeApplicationException {
 
         if (users.size() > 1) {
-            Logger.getLogger(MovieUserFacade.class.getName()).log(Level.SEVERE, "The given username is more elements.");
+            Logger.getLogger(MovieUserFacade.class.getName()).log(Level.WARNING, "The given username is more elements.");
+            throw new JeeApplicationException("The given username is more elements.");
         }
     }
 
@@ -133,15 +139,6 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
         }
     }
 
-    public void isAlreadyExistUsername(String username) throws JeeApplicationException {
-
-        List<MovieUser> users = getMovieUserByUsername(username);
-
-        if (CollectionUtils.isNotEmpty(users)) {
-            throw new JeeApplicationException(Constant.USERNAME_IS_ALREADY_EXIST);
-        }
-    }
-
     public String createHashPasswordAndSalt(String password)
             throws JeeApplicationException, NoSuchAlgorithmException, InvalidKeySpecException {
 
@@ -162,21 +159,30 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
         return movieUser;
     }
 
-    private List<MovieUser> getMovieUserByUsername(String username) {
+    public MovieUser findUser(String username) throws JeeApplicationException {
+        
+        Map<String, Object> params = new HashMap<>(1);
+        params.put("username", username);
+        List<MovieUser> users = calledNamedQuery("MovieUser.findByUsername", params);
+        checkUsernameExist(users);
+        checkUsernameIsUnique(users);
+        
+        return users.get(0);
+    }
+    
+    public void notFindUser(String username) throws JeeApplicationException {
+        
         Map<String, Object> params = new HashMap<>(0);
         params.put("username", username);
-        return calledNamedQuery("MovieUser.findByUsername", params);
+        List<MovieUser> users = calledNamedQuery("MovieUser.findByUsername", params);
+        checkNotExistUsername(users);
     }
     
-    public List<MovieUser> getMovieUserByToken(String token) {
-        Map<String, Object> params = new HashMap<>(0);
-        params.put("token", token);
-        return calledNamedQuery("MovieUser.findByToken", params);
-    }
-    
-    public boolean isExpiredToken(Date registerDate) {
-        long diffInMillies = new Date().getTime() - registerDate.getTime();
-        return diffInMillies > (Constant.TOKEN_EXPIRATION_DATE_IN_MINUTES * 60 * 1000);
+    public void checkNotExistUsername(List<MovieUser> users) throws JeeApplicationException {
+
+        if (!CollectionUtils.isEmpty(users)) {
+            throw new JeeApplicationException(Constant.USERNAME_IS_ALREADY_EXIST);
+        }
     }
 
     public EntityManager getEm() {

@@ -5,9 +5,14 @@
  */
 package com.manager.moviemanager.service;
 
+import com.google.gson.Gson;
+import com.manager.moviemanager.constant.Constant;
+import com.manager.moviemanager.entity.Movie;
+import com.manager.moviemanager.entity.MovieUser;
 import com.manager.moviemanager.exception.JeeApplicationException;
 import com.manager.moviemanager.security.Secured;
 import com.manager.moviemanager.sessionbean.MovieFacade;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
@@ -15,6 +20,8 @@ import javax.ejb.Stateless;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
 
 /**
@@ -32,15 +39,43 @@ public class MovieFacadeREST {
     @Secured
     @Path("addMovie")
     @Produces({"application/json"})
-    public Response addMovie(String movie) {
+    public Response addMovie(String movie,
+            @Context ContainerRequestContext containerRequestContext) {
         try {
-            movieFacade.createMovie(movie);
+            MovieUser user = (MovieUser) containerRequestContext.getProperty(
+                    Constant.MOVIE_USER_FOR_IDENTIFICATION);
+            movieFacade.createMovie(movie, user);
+            containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
             return Response.status(Response.Status.OK).build();
         } catch (JeeApplicationException ex) {
             Logger.getLogger(MovieFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
             return Response.status(Response.Status.OK).entity(ex.getMessage()).build();
         }
     }
+    
+    @POST
+    @Secured
+    @Path("getAllMovie")
+    @Produces({"application/json"})
+    public Response findAllMovie(@Context ContainerRequestContext containerRequestContext) {
+        try {
+            MovieUser user = (MovieUser) containerRequestContext.getProperty(
+                    Constant.MOVIE_USER_FOR_IDENTIFICATION);
+            List<Movie> movies = movieFacade.findAllByUser(user.getId());
+            Gson gson = new Gson();
+            String jsonResponse = gson.toJson(movies);
+            containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
+            return Response.status(Response.Status.OK).entity(jsonResponse).build();
+        } catch (JeeApplicationException ex) {
+            Logger.getLogger(MovieFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
+            return Response.status(Response.Status.OK).entity(ex.getMessage()).build();
+        }
+    }
+    
+//    public String getUsername() {
+//        Principal principal = securityContext.getUserPrincipal();
+//        return principal.getName();
+//    }
 
 //    @PUT
 //    @Path("{id}")

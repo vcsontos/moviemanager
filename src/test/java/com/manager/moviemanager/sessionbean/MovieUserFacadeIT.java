@@ -52,7 +52,6 @@ public class MovieUserFacadeIT {
 //        MovieUserFacadeLocal instance = (MovieUserFacadeLocal)container.getContext().lookup("java:global/classes/MovieUserFacade");
 //        instance.create(entity);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -67,7 +66,6 @@ public class MovieUserFacadeIT {
 //        MovieUserFacadeLocal instance = (MovieUserFacadeLocal)container.getContext().lookup("java:global/classes/MovieUserFacade");
 //        instance.edit(entity);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -82,7 +80,6 @@ public class MovieUserFacadeIT {
 //        MovieUserFacadeLocal instance = (MovieUserFacadeLocal)container.getContext().lookup("java:global/classes/MovieUserFacade");
 //        instance.remove(entity);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -99,7 +96,6 @@ public class MovieUserFacadeIT {
 //        MovieUser result = instance.find(id);
 //        assertEquals(expResult, result);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -115,7 +111,6 @@ public class MovieUserFacadeIT {
 //        List<MovieUser> result = instance.findAll();
 //        assertEquals(expResult, result);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -132,7 +127,6 @@ public class MovieUserFacadeIT {
 //        List<MovieUser> result = instance.findRange(range);
 //        assertEquals(expResult, result);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -148,7 +142,6 @@ public class MovieUserFacadeIT {
 //        int result = instance.count();
 //        assertEquals(expResult, result);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -163,7 +156,6 @@ public class MovieUserFacadeIT {
 //        MovieUserFacadeLocal instance = (MovieUserFacadeLocal)container.getContext().lookup("java:global/classes/MovieUserFacade");
 //        instance.validateUsername(username);
 //        container.close();
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -177,7 +169,6 @@ public class MovieUserFacadeIT {
 //        EntityManager expResult = null;
 //        EntityManager result = instance.getEm();
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -190,7 +181,6 @@ public class MovieUserFacadeIT {
 //        EntityManager em = null;
 //        MovieUserFacade instance = new MovieUserFacade();
 //        instance.setEm(em);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -204,7 +194,6 @@ public class MovieUserFacadeIT {
 //        String expResult = "";
 //        String result = instance.getUsername();
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -217,7 +206,6 @@ public class MovieUserFacadeIT {
 //        String username = "";
 //        MovieUserFacade instance = new MovieUserFacade();
 //        instance.setUsername(username);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -231,7 +219,6 @@ public class MovieUserFacadeIT {
 //        String expResult = "";
 //        String result = instance.getPassword();
 //        assertEquals(expResult, result);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
 //
@@ -244,7 +231,6 @@ public class MovieUserFacadeIT {
 //        String password = "";
 //        MovieUserFacade instance = new MovieUserFacade();
 //        instance.setPassword(password);
-//        // TODO review the generated test code and remove the default call to fail.
 //        fail("The test case is a prototype.");
 //    }
     
