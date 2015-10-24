@@ -62,10 +62,6 @@ public class MovieFacade extends AbstractFacade<Movie> {
             return new ArrayList<>();
         }
         
-        for (Movie movie : movies) {
-            movie.setMovieUser(null);
-        }
-        
         return movies;
     }
 
@@ -166,6 +162,33 @@ public class MovieFacade extends AbstractFacade<Movie> {
         return movies;
     }
     
+    public List<Movie> findMovieByMovieIdAndUserId(Long movieId, Long userId) throws JeeApplicationException {
+        
+        Map<String, Object> params = new HashMap<>(2);
+        params.put("movieId", movieId);
+        params.put("userId", userId);
+        List<Movie> movies = calledNamedQuery("MovieUser.findMovieByMovieIdAndUserId", params);
+        
+        return movies;
+    }
+    
+    public Movie transferMovie(List<Movie> movies) {
+        
+        Movie movie = null;
+        if (CollectionUtils.isNotEmpty(movies)) {
+            movie = new Movie();
+            movie.setId(movies.get(0).getId());
+            movie.setName(movies.get(0).getName());
+            movie.setType(movies.get(0).getType());
+            movie.setGenre(movies.get(0).getGenre());
+            movie.setActors(movies.get(0).getActors());
+            movie.setRating(movies.get(0).getRating());
+            movie.setImage(movies.get(0).getImage());
+        }
+        
+        return movie;
+    }
+    
     public List<Movie> findAllMovieByUser(Long userId) throws JeeApplicationException {
         
         Map<String, Object> params = new HashMap<>(2);
@@ -173,6 +196,10 @@ public class MovieFacade extends AbstractFacade<Movie> {
         List<Movie> movies = calledNamedQuery("MovieUser.findAllMovieByUser", params);
         
         return movies;
+    }
+    
+    public void deleteMovie(Movie movie) {
+        getEntityManager().remove(movie);
     }
 
     public void createImage() {

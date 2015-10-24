@@ -184,6 +184,20 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
             throw new JeeApplicationException(Constant.USERNAME_IS_ALREADY_EXIST);
         }
     }
+    
+    public void deleteToken(String username) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaUpdate<MovieUser> update = builder.
+                createCriteriaUpdate(MovieUser.class);
+        Root<MovieUser> root = update.from(MovieUser.class);
+        EntityType<MovieUser> movieuser_ = root.getModel();
+
+        Predicate usernameCondition = builder.equal(root.get(movieuser_.getSingularAttribute("username", String.class)), username);
+
+        update.set(root.get(movieuser_.getSingularAttribute("token", String.class)), "");
+        update.where(usernameCondition);
+        getEntityManager().createQuery(update).executeUpdate();
+    }
 
     public EntityManager getEm() {
         return em;

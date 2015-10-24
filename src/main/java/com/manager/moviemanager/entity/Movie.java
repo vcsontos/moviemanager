@@ -33,6 +33,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @NamedQueries({
     @NamedQuery(name = "MovieUser.findMovieByMovieNameAndUserId", 
             query = "SELECT m FROM Movie m WHERE m.name = :movieName AND m.movieUser.id = :userId"),
+    @NamedQuery(name = "MovieUser.findMovieByMovieIdAndUserId", 
+            query = "SELECT m FROM Movie m WHERE m.id = :movieId AND m.movieUser.id = :userId"),
     @NamedQuery(name = "MovieUser.findAllMovieByUser", 
             query = "SELECT m FROM Movie m WHERE m.movieUser.id = :userId")
 })

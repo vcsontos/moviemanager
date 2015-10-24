@@ -7,7 +7,9 @@ package com.manager.moviemanager.service;
 
 import com.google.gson.Gson;
 import com.manager.moviemanager.constant.Constant;
+import com.manager.moviemanager.entity.MovieUser;
 import com.manager.moviemanager.exception.JeeApplicationException;
+import com.manager.moviemanager.security.Secured;
 import com.manager.moviemanager.sessionbean.MovieUserFacade;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -21,6 +23,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 
 /**
  *
@@ -62,6 +66,17 @@ public class MovieUserFacadeREST  {
             Logger.getLogger(MovieUserFacadeREST.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
             return Response.status(Response.Status.UNAUTHORIZED).build();
         } 
+    }
+    
+    @POST
+    @Path("logout")
+    @Secured
+    @Produces({"application/json"})
+    public Response logout(@Context ContainerRequestContext containerRequestContext) {        
+        MovieUser user = (MovieUser) containerRequestContext.getProperty(
+                Constant.MOVIE_USER_FOR_IDENTIFICATION);
+        movieUserFacade.deleteToken(user.getUsername());
+        return Response.status(Response.Status.OK).build();
     }
     
     public Response assembleResponse(String username, String message) {
