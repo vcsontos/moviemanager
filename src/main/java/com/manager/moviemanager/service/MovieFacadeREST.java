@@ -65,7 +65,7 @@ public class MovieFacadeREST {
         try {
             MovieUser user = (MovieUser) containerRequestContext.getProperty(
                     Constant.MOVIE_USER_FOR_IDENTIFICATION);
-            List<Movie> movies = movieFacade.findAllByUser(user.getId());
+            List<Movie> movies = movieFacade.findAllMovieByUser(user.getId());
             String jsonResponse = createJsonResponse(movies);
             containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
             return Response.status(Response.Status.OK).entity(jsonResponse).build();
@@ -109,9 +109,27 @@ public class MovieFacadeREST {
             containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
             
             if (CollectionUtils.isNotEmpty(movies)) {
-                movieFacade.deleteMovie(movies.get(0));
+                movieFacade.remove(movies.get(0));
             }
             
+            return Response.status(Response.Status.OK).build();
+        } catch (JeeApplicationException ex) {
+            Logger.getLogger(MovieFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
+            return Response.status(Response.Status.OK).entity(ex.getMessage()).build();
+        }
+    }
+    
+    @POST
+    @Secured
+    @Path("updateMovie")
+    @Produces({"application/json"})
+    public Response updateMovie(String movie,
+            @Context ContainerRequestContext containerRequestContext) {
+        try {
+            MovieUser user = (MovieUser) containerRequestContext.getProperty(
+                    Constant.MOVIE_USER_FOR_IDENTIFICATION);
+            movieFacade.updateMovie(movie, user);
+            containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
             return Response.status(Response.Status.OK).build();
         } catch (JeeApplicationException ex) {
             Logger.getLogger(MovieFacadeREST.class.getName()).log(Level.SEVERE, null, ex);

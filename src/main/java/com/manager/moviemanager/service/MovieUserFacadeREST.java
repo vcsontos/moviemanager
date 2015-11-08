@@ -55,12 +55,12 @@ public class MovieUserFacadeREST  {
     @POST
     @Path("login")
     @Produces({"application/json"})
-    public Response authenticateUser(
+    public Response login(
             @FormParam("username") String username,
             @FormParam("password") String password) {
+        
         try {
-            movieUserFacade.authenticate(username, password);
-            String token = movieUserFacade.issueToken(username);        
+            String token = movieUserFacade.login(username, password);                   
             return Response.ok(token).build();
         } catch (JeeApplicationException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
             Logger.getLogger(MovieUserFacadeREST.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);

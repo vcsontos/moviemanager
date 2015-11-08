@@ -13,6 +13,7 @@ import com.manager.moviemanager.utils.Base64Coding;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.List;
 import javax.annotation.Priority;
 import javax.ejb.EJB;
 import javax.ws.rs.NotAuthorizedException;
@@ -109,8 +110,10 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     public MovieUser validateAudience(String audience) throws JeeApplicationException {
         
         String decodedAudience = Base64Coding.decodeString(audience);
-        MovieUser user = movieUserFacade.findUser(decodedAudience);              
-        return user;
+        List<MovieUser> users = movieUserFacade.getUser(decodedAudience);
+        movieUserFacade.checkUsernameExist(users);
+        movieUserFacade.checkUsernameIsUnique(users);
+        return users.get(0);
     }
     
     public void compareToken(String token, String userToken) throws JeeApplicationException {

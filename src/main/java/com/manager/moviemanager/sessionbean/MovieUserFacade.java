@@ -57,16 +57,39 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
 
         validateUsername(username);
         validatePassword(password);
-        notFindUser(username);
+        List<MovieUser> users = getUser(username);
+        checkUsernameNotExist(users);
         String hashedPassword = createHashPasswordAndSalt(password);
         getEntityManager().persist(setMovieUser(username, hashedPassword));
+    }
+    
+    public String login(String username, String password) 
+            throws JeeApplicationException, NoSuchAlgorithmException, InvalidKeySpecException {
+        authenticate(username, password);
+        return issueToken(username);
+    }
+    
+    public void deleteToken(String username) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaUpdate<MovieUser> update = builder.
+                createCriteriaUpdate(MovieUser.class);
+        Root<MovieUser> root = update.from(MovieUser.class);
+        EntityType<MovieUser> movieuser_ = root.getModel();
+
+        Predicate usernameCondition = builder.equal(root.get(movieuser_.getSingularAttribute("username", String.class)), username);
+
+        update.set(root.get(movieuser_.getSingularAttribute("token", String.class)), "");
+        update.where(usernameCondition);
+        getEntityManager().createQuery(update).executeUpdate();
     }
 
     public void authenticate(String username, String password)
             throws JeeApplicationException, NoSuchAlgorithmException, InvalidKeySpecException {
 
-        MovieUser user = findUser(username);
-        boolean validPassword = PassWordHash.validatePassword(password, user.getPassword());
+        List<MovieUser> users = getUser(username);
+        checkUsernameExist(users);
+        checkUsernameIsUnique(users);
+        boolean validPassword = PassWordHash.validatePassword(password, users.get(0).getPassword());
         checkPassword(validPassword);
     }
 
@@ -158,45 +181,18 @@ public class MovieUserFacade extends AbstractFacade<MovieUser> {
         movieUser.setCreatedDate(new Date());
         return movieUser;
     }
-
-    public MovieUser findUser(String username) throws JeeApplicationException {
-        
+    
+    public List<MovieUser> getUser(String username) {
         Map<String, Object> params = new HashMap<>(1);
         params.put("username", username);
-        List<MovieUser> users = calledNamedQuery("MovieUser.findByUsername", params);
-        checkUsernameExist(users);
-        checkUsernameIsUnique(users);
-        
-        return users.get(0);
+        return calledNamedQuery("MovieUser.findByUsername", params);
     }
     
-    public void notFindUser(String username) throws JeeApplicationException {
-        
-        Map<String, Object> params = new HashMap<>(0);
-        params.put("username", username);
-        List<MovieUser> users = calledNamedQuery("MovieUser.findByUsername", params);
-        checkNotExistUsername(users);
-    }
-    
-    public void checkNotExistUsername(List<MovieUser> users) throws JeeApplicationException {
+    public void checkUsernameNotExist(List<MovieUser> users) throws JeeApplicationException {
 
         if (!CollectionUtils.isEmpty(users)) {
             throw new JeeApplicationException(Constant.USERNAME_IS_ALREADY_EXIST);
         }
-    }
-    
-    public void deleteToken(String username) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaUpdate<MovieUser> update = builder.
-                createCriteriaUpdate(MovieUser.class);
-        Root<MovieUser> root = update.from(MovieUser.class);
-        EntityType<MovieUser> movieuser_ = root.getModel();
-
-        Predicate usernameCondition = builder.equal(root.get(movieuser_.getSingularAttribute("username", String.class)), username);
-
-        update.set(root.get(movieuser_.getSingularAttribute("token", String.class)), "");
-        update.where(usernameCondition);
-        getEntityManager().createQuery(update).executeUpdate();
     }
 
     public EntityManager getEm() {

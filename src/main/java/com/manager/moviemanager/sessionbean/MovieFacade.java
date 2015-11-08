@@ -11,10 +11,7 @@ import com.google.gson.JsonParser;
 import com.manager.moviemanager.entity.Movie;
 import com.manager.moviemanager.entity.MovieUser;
 import com.manager.moviemanager.exception.JeeApplicationException;
-import com.manager.moviemanager.utils.Base64Coding;
 import com.manager.moviemanager.utils.MovieType;
-import java.io.File;
-import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +22,11 @@ import java.util.Map;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaUpdate;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.EntityType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,12 +53,50 @@ public class MovieFacade extends AbstractFacade<Movie> {
 
         Movie movie = getMovieFromJson(json, user);
         movie.setCreatedDate(new Date());
-        getEntityManager().persist(movie);
+        create(movie);
     }
     
-    public List<Movie> findAllByUser(Long userId) throws JeeApplicationException {
+    public void updateMovie(String json, MovieUser user) throws JeeApplicationException {
+
+        Movie movie = getMovieFromJson(json, user);
         
-        List<Movie> movies = findAllMovieByUser(userId);
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaUpdate<Movie> update = builder.
+                createCriteriaUpdate(Movie.class);
+        Root<Movie> root = update.from(Movie.class);
+        EntityType<Movie> movie_ = root.getModel();
+
+        List<Predicate> predicates = new ArrayList<>();
+        Predicate movieNameCondition = builder.equal(root.get(movie_.getSingularAttribute("name", Long.class)), movie.getName());
+        predicates.add(movieNameCondition);
+        Predicate userIdCondition = builder.equal(root.get(movie_.getSingularAttribute("id", Long.class)), user.getId());
+        predicates.add(userIdCondition);
+        
+        if (StringUtils.isNotEmpty(movie.getActors())) {
+            update.set(root.get(movie_.getSingularAttribute("actors", String.class)), movie.getActors());
+        }
+        
+        if (StringUtils.isNotEmpty(movie.getGenre())) {
+            update.set(root.get(movie_.getSingularAttribute("genre", String.class)), movie.getGenre());
+        }
+        
+        if (movie.getRating() != null) {
+            update.set(root.get(movie_.getSingularAttribute("rating", Integer.class)), movie.getRating());
+        }
+        
+        if (movie.getImage().length > 0) {
+            update.set(root.get(movie_.getSingularAttribute("image", byte[].class)), movie.getImage());
+        }
+        
+        update.where(predicates.toArray(new Predicate[]{}));
+        getEntityManager().createQuery(update).executeUpdate();
+    }
+    
+    public List<Movie> findAllMovieByUser(Long userId) throws JeeApplicationException {
+               
+        Map<String, Object> params = new HashMap<>(1);
+        params.put("userId", userId);
+        List<Movie> movies = calledNamedQuery("MovieUser.findAllMovieByUser", params);
         
         if (CollectionUtils.isEmpty(movies)) {
             return new ArrayList<>();
@@ -145,7 +185,8 @@ public class MovieFacade extends AbstractFacade<Movie> {
     }
     
     public void checkUserHasThisMovie(String movieName, Long userId) throws JeeApplicationException {
-       List<Movie> movies = findMovieByMovieNameAndUser(movieName, userId);
+       
+        List<Movie> movies = findMovieByMovieNameAndUser(movieName, userId);
        
        if (CollectionUtils.isNotEmpty(movies)) {
            throw new JeeApplicationException("Movie is already exist.");
@@ -188,33 +229,20 @@ public class MovieFacade extends AbstractFacade<Movie> {
         
         return movie;
     }
-    
-    public List<Movie> findAllMovieByUser(Long userId) throws JeeApplicationException {
-        
-        Map<String, Object> params = new HashMap<>(2);
-        params.put("userId", userId);
-        List<Movie> movies = calledNamedQuery("MovieUser.findAllMovieByUser", params);
-        
-        return movies;
-    }
-    
-    public void deleteMovie(Movie movie) {
-        getEntityManager().remove(movie);
-    }
 
-    public void createImage() {
-        File file = new File("C://Users//valentin//Downloads//wallpapers//barca//barcalogo.png");
-
-        try {
-            // Reading a Image file from file system
-            FileInputStream imageInFile = new FileInputStream(file);
-            byte imageData[] = new byte[(int) file.length()];
-            imageInFile.read(imageData);
-            // Converting Image byte array into Base64 String
-            String imageDataString = Base64Coding.encodeImage(imageData);
-            System.out.println(imageDataString);
-        } catch (Exception ex) {
-
-        }
-    }
+//    public void createImage() {
+//        File file = new File("C://Users//valentin//Downloads//wallpapers//barca//barcalogo.png");
+//
+//        try {
+//            // Reading a Image file from file system
+//            FileInputStream imageInFile = new FileInputStream(file);
+//            byte imageData[] = new byte[(int) file.length()];
+//            imageInFile.read(imageData);
+//            // Converting Image byte array into Base64 String
+//            String imageDataString = Base64Coding.encodeImage(imageData);
+//            System.out.println(imageDataString);
+//        } catch (Exception ex) {
+//
+//        }
+//    }
 }

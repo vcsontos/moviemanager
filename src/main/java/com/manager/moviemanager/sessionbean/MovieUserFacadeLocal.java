@@ -32,4 +32,6 @@ public interface MovieUserFacadeLocal {
 
     void addUser(String username, String password);
     
+    String login(String username, String password);
+    
 }
