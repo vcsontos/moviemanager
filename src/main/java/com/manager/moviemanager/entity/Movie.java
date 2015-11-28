@@ -67,7 +67,7 @@ public class Movie implements Serializable {
     private Date createdDate;
     
     @Column(name = "image")
-    private byte[] image;
+    private String image;
     
     @ManyToOne
     @JoinColumn(name = "movieuser", referencedColumnName = "id")
@@ -143,11 +143,11 @@ public class Movie implements Serializable {
         this.createdDate = createdDate;
     }
 
-    public byte[] getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setImage(byte[] image) {
+    public void setImage(String image) {
         this.image = image;
     }
 

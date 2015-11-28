@@ -15,7 +15,7 @@ public class MovieHelper {
     private String name;
     private MovieType type;
     private Integer rating;
-    private byte[] image;
+    private String image;
 
     public Long getId() {
         return id;
@@ -49,11 +49,11 @@ public class MovieHelper {
         this.rating = rating;
     }
 
-    public byte[] getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setImage(byte[] image) {
+    public void setImage(String image) {
         this.image = image;
     }
 }

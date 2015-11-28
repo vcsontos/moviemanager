@@ -54,7 +54,7 @@ public class MovieUserFacadeREST  {
     
     @POST
     @Path("login")
-    @Produces({"application/json"})
+    @Produces({"text/plain"})
     public Response login(
             @FormParam("username") String username,
             @FormParam("password") String password) {

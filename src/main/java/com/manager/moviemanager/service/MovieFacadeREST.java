@@ -81,44 +81,41 @@ public class MovieFacadeREST {
     @Produces({"application/json"})
     public Response getMovieById(@PathParam("id") Long movieId,
             @Context ContainerRequestContext containerRequestContext) {
-        try {
-            MovieUser user = (MovieUser) containerRequestContext.getProperty(
-                    Constant.MOVIE_USER_FOR_IDENTIFICATION);
-            List<Movie> movies = movieFacade.findMovieByMovieIdAndUserId(movieId, user.getId());
-            Movie movie = movieFacade.transferMovie(movies);
-            Gson gson = new Gson();
-            String jsonResponse = gson.toJson(movie);
-            containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
-            return Response.status(Response.Status.OK).entity(jsonResponse).build();
-        } catch (JeeApplicationException ex) {
-            Logger.getLogger(MovieFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
-            return Response.status(Response.Status.OK).entity(ex.getMessage()).build();
+
+        MovieUser user = (MovieUser) containerRequestContext.getProperty(
+                Constant.MOVIE_USER_FOR_IDENTIFICATION);
+        List<Movie> movies = movieFacade.findMovieByMovieIdAndUserId(movieId, user.getId());
+        containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
+        Gson gson = new Gson();
+        String jsonResponse;
+        if (CollectionUtils.isEmpty(movies)) {
+            jsonResponse = gson.toJson("Movie is not exist"); 
+        } else {
+            Movie movie = movieFacade.transferMovie(movies);            
+            jsonResponse = gson.toJson(movie);                       
         }
+        return Response.status(Response.Status.OK).entity(jsonResponse).build();
     }
-    
+
     @POST
     @Secured
     @Path("deleteMovieById/{id}")
     @Produces({"application/json"})
     public Response deleteMovieById(@PathParam("id") Long movieId,
             @Context ContainerRequestContext containerRequestContext) {
-        try {
-            MovieUser user = (MovieUser) containerRequestContext.getProperty(
-                    Constant.MOVIE_USER_FOR_IDENTIFICATION);
-            List<Movie> movies = movieFacade.findMovieByMovieIdAndUserId(movieId, user.getId());
-            containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
-            
-            if (CollectionUtils.isNotEmpty(movies)) {
-                movieFacade.remove(movies.get(0));
-            }
-            
-            return Response.status(Response.Status.OK).build();
-        } catch (JeeApplicationException ex) {
-            Logger.getLogger(MovieFacadeREST.class.getName()).log(Level.SEVERE, null, ex);
-            return Response.status(Response.Status.OK).entity(ex.getMessage()).build();
+
+        MovieUser user = (MovieUser) containerRequestContext.getProperty(
+                Constant.MOVIE_USER_FOR_IDENTIFICATION);
+        List<Movie> movies = movieFacade.findMovieByMovieIdAndUserId(movieId, user.getId());
+        containerRequestContext.removeProperty(Constant.MOVIE_USER_FOR_IDENTIFICATION);
+
+        if (CollectionUtils.isNotEmpty(movies)) {
+            movieFacade.remove(movies.get(0));
         }
+
+        return Response.status(Response.Status.OK).build();
     }
-    
+
     @POST
     @Secured
     @Path("updateMovie")
@@ -155,45 +152,4 @@ public class MovieFacadeREST {
         Gson gson = new Gson();
         return gson.toJson(movieHelpers);
     }
-
-//    @PUT
-//    @Path("{id}")
-//    @Consumes({"application/xml", "application/json"})
-//    public void edit(@PathParam("id") Long id, Movie entity) {
-//        super.edit(entity);
-//    }
-//
-//    @DELETE
-//    @Path("{id}")
-//    public void remove(@PathParam("id") Long id) {
-//        super.remove(super.find(id));
-//    }
-//
-//    @GET
-//    @Path("{id}")
-//    @Produces({"application/xml", "application/json"})
-//    public Movie find(@PathParam("id") Long id) {
-//        return super.find(id);
-//    }
-//
-//    @GET
-//    @Override
-//    @Produces({"application/xml", "application/json"})
-//    public List<Movie> findAll() {
-//        return super.findAll();
-//    }
-//
-//    @GET
-//    @Path("{from}/{to}")
-//    @Produces({"application/xml", "application/json"})
-//    public List<Movie> findRange(@PathParam("from") Integer from, @PathParam("to") Integer to) {
-//        return super.findRange(new int[]{from, to});
-//    }
-//
-//    @GET
-//    @Path("count")
-//    @Produces("text/plain")
-//    public String countREST() {
-//        return String.valueOf(super.count());
-//    }
 }

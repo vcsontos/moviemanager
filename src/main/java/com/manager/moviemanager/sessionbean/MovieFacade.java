@@ -12,9 +12,7 @@ import com.manager.moviemanager.entity.Movie;
 import com.manager.moviemanager.entity.MovieUser;
 import com.manager.moviemanager.exception.JeeApplicationException;
 import com.manager.moviemanager.utils.MovieType;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -44,96 +42,115 @@ public class MovieFacade extends AbstractFacade<Movie> {
     protected EntityManager getEntityManager() {
         return em;
     }
-    
+
     public MovieFacade() {
         super(Movie.class);
     }
 
     public void createMovie(String json, MovieUser user) throws JeeApplicationException {
 
-        Movie movie = getMovieFromJson(json, user);
+        Movie movie = getMovieFromJson(json, user, false);
         movie.setCreatedDate(new Date());
         create(movie);
     }
-    
+
     public void updateMovie(String json, MovieUser user) throws JeeApplicationException {
 
-        Movie movie = getMovieFromJson(json, user);
-        
+        Movie movie = getMovieFromJson(json, user, true);
+
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaUpdate<Movie> update = builder.
                 createCriteriaUpdate(Movie.class);
         Root<Movie> root = update.from(Movie.class);
         EntityType<Movie> movie_ = root.getModel();
 
-        List<Predicate> predicates = new ArrayList<>();
-        Predicate movieNameCondition = builder.equal(root.get(movie_.getSingularAttribute("name", Long.class)), movie.getName());
-        predicates.add(movieNameCondition);
-        Predicate userIdCondition = builder.equal(root.get(movie_.getSingularAttribute("id", Long.class)), user.getId());
-        predicates.add(userIdCondition);
-        
+        Predicate movieCondition = builder.equal(root.get(movie_.getSingularAttribute("id", Long.class)), movie.getId());
+
+        if (StringUtils.isNotEmpty(movie.getName())) {
+            update.set(root.get(movie_.getSingularAttribute("name", String.class)), movie.getName());
+        }
+
+        if (movie.getType() != null) {
+            update.set(root.get(movie_.getSingularAttribute("type", MovieType.class)), movie.getType());
+        }
+
         if (StringUtils.isNotEmpty(movie.getActors())) {
             update.set(root.get(movie_.getSingularAttribute("actors", String.class)), movie.getActors());
         }
-        
+
         if (StringUtils.isNotEmpty(movie.getGenre())) {
             update.set(root.get(movie_.getSingularAttribute("genre", String.class)), movie.getGenre());
         }
-        
+
         if (movie.getRating() != null) {
             update.set(root.get(movie_.getSingularAttribute("rating", Integer.class)), movie.getRating());
         }
-        
-        if (movie.getImage().length > 0) {
-            update.set(root.get(movie_.getSingularAttribute("image", byte[].class)), movie.getImage());
+
+        if (StringUtils.isNotEmpty(movie.getImage())) {
+            update.set(root.get(movie_.getSingularAttribute("image", String.class)), movie.getImage());
         }
-        
-        update.where(predicates.toArray(new Predicate[]{}));
+
+        update.where(movieCondition);
         getEntityManager().createQuery(update).executeUpdate();
     }
-    
+
     public List<Movie> findAllMovieByUser(Long userId) throws JeeApplicationException {
-               
+
         Map<String, Object> params = new HashMap<>(1);
         params.put("userId", userId);
         List<Movie> movies = calledNamedQuery("MovieUser.findAllMovieByUser", params);
-        
+
         if (CollectionUtils.isEmpty(movies)) {
             return new ArrayList<>();
         }
-        
+
         return movies;
     }
 
-    public Movie getMovieFromJson(String json, MovieUser user) throws JeeApplicationException {
+    public Movie getMovieFromJson(String json, MovieUser user, boolean isUpdate) throws JeeApplicationException {
 
         if (StringUtils.isEmpty(json)) {
-            throw new JeeApplicationException("Movie name and type required.");
+            throw new JeeApplicationException("Movie id required.");
         }
 
         JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
 
         Movie movie = new Movie();
 
-        JsonElement nameElement = jsonObject.get("name");
-        if (nameElement == null) {
-            throw new JeeApplicationException("Movie name and type required.");
+        if (isUpdate) {
+            JsonElement idElement = jsonObject.get("id");
+            if (idElement == null) {
+                throw new JeeApplicationException("Movie id required.");
+            }
+            Long movieId = idElement.getAsLong();
+            movie.setId(movieId);
         }
-        String movieName = nameElement.getAsString();
-        movie.setName(movieName);
-        
-        checkUserHasThisMovie(movieName, user.getId());
+
+        JsonElement nameElement = jsonObject.get("name");
+        if (!isUpdate && nameElement == null) {
+            throw new JeeApplicationException("Movie name required.");
+        }
+        String movieName = "";
+        if (nameElement != null) {
+            movieName = nameElement.getAsString();
+            movie.setName(movieName);
+        }
+
+        if (!isUpdate) {
+            checkUserHasThisMovie(movieName, user.getId());
+        }
 
         JsonElement typeElement = jsonObject.get("type");
-        if (typeElement == null) {
-            throw new JeeApplicationException("Movie name and type required.");
+        if (!isUpdate && typeElement == null) {
+            throw new JeeApplicationException("Movie type required");
         }
-
-        String type = typeElement.getAsString().trim().toUpperCase();
-        if (type.equals(MovieType.MOVIE.toString()) || type.equals(MovieType.SERIES.toString())) {
-            movie.setType(MovieType.valueOf(type));
-        } else {
-            throw new JeeApplicationException("Invalid movie type");
+        if (typeElement != null) {
+            String type = typeElement.getAsString().trim().toUpperCase();
+            if (type.equals(MovieType.MOVIE.toString()) || type.equals(MovieType.SERIES.toString())) {
+                movie.setType(MovieType.valueOf(type));
+            } else {
+                throw new JeeApplicationException("Invalid movie type");
+            }
         }
 
         JsonElement genreElement = jsonObject.get("genre");
@@ -162,59 +179,60 @@ public class MovieFacade extends AbstractFacade<Movie> {
             if (rating > 0 && rating < 6) {
                 movie.setRating(rating);
             } else {
-                throw new JeeApplicationException("Invalid rating value");
+                throw new JeeApplicationException("Invalid rating value [Valid values: 1-5]");
             }
         }
-        
+
         JsonElement imageElement = jsonObject.get("image");
         if (imageElement != null) {
-            byte[] image = imageElement.getAsString().getBytes(StandardCharsets.UTF_8);
+            String image = imageElement.getAsString();
             movie.setImage(image);
         }
-        
+
         movie.setMovieUser(user);
 
         System.out.println("username: " + user.getUsername());
+        System.out.println("id: " + movie.getId());
         System.out.println("name: " + movie.getName());
         System.out.println("type: " + movie.getType());
         System.out.println("genre: " + movie.getGenre());
         System.out.println("actors: " + movie.getActors());
         System.out.println("rating: " + movie.getRating());
-        System.out.println("image: " + Arrays.toString(movie.getImage()));
+        System.out.println("image: " + movie.getImage());
         return movie;
     }
-    
+
     public void checkUserHasThisMovie(String movieName, Long userId) throws JeeApplicationException {
-       
-        List<Movie> movies = findMovieByMovieNameAndUser(movieName, userId);
-       
-       if (CollectionUtils.isNotEmpty(movies)) {
-           throw new JeeApplicationException("Movie is already exist.");
-       }  
+
+        List<Movie> movies = findMovieByMovieNameAndUserId(movieName, userId);
+
+        if (CollectionUtils.isNotEmpty(movies)) {
+            throw new JeeApplicationException("Movie is already exist.");
+        }
     }
-    
-    public List<Movie> findMovieByMovieNameAndUser(String movieName, Long userId) throws JeeApplicationException {
-        
+
+    public List<Movie> findMovieByMovieNameAndUserId(String movieName, Long userId) {
+
         Map<String, Object> params = new HashMap<>(2);
         params.put("movieName", movieName);
         params.put("userId", userId);
         List<Movie> movies = calledNamedQuery("MovieUser.findMovieByMovieNameAndUserId", params);
-        
+
         return movies;
     }
-    
-    public List<Movie> findMovieByMovieIdAndUserId(Long movieId, Long userId) throws JeeApplicationException {
-        
+
+    public List<Movie> findMovieByMovieIdAndUserId(Long movieId, Long userId) {
+
         Map<String, Object> params = new HashMap<>(2);
         params.put("movieId", movieId);
         params.put("userId", userId);
         List<Movie> movies = calledNamedQuery("MovieUser.findMovieByMovieIdAndUserId", params);
-        
+
         return movies;
     }
-    
+
     public Movie transferMovie(List<Movie> movies) {
-        
+
         Movie movie = null;
         if (CollectionUtils.isNotEmpty(movies)) {
             movie = new Movie();
@@ -226,23 +244,7 @@ public class MovieFacade extends AbstractFacade<Movie> {
             movie.setRating(movies.get(0).getRating());
             movie.setImage(movies.get(0).getImage());
         }
-        
+
         return movie;
     }
-
-//    public void createImage() {
-//        File file = new File("C://Users//valentin//Downloads//wallpapers//barca//barcalogo.png");
-//
-//        try {
-//            // Reading a Image file from file system
-//            FileInputStream imageInFile = new FileInputStream(file);
-//            byte imageData[] = new byte[(int) file.length()];
-//            imageInFile.read(imageData);
-//            // Converting Image byte array into Base64 String
-//            String imageDataString = Base64Coding.encodeImage(imageData);
-//            System.out.println(imageDataString);
-//        } catch (Exception ex) {
-//
-//        }
-//    }
 }
